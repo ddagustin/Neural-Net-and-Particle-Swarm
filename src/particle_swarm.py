@@ -221,11 +221,9 @@ class PSO():
 
         """
         
-        
-        
         self.initialise_swarm( model.weight_dims[-1] )
         
-        # calculate loss and identify informants for each particle
+        # calculate loss, identify informants for each particle and set initial global variables
         for particle in self.swarm:
             particle.calculate_fitness( model.train( X, y ) )
             particle.set_informants( self.swarm_size, self.swarm.index( particle ))
