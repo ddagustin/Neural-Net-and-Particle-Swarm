@@ -122,7 +122,6 @@ class NeuralNetwork():
         # calculate accuracy
         self.accuracy = ( predictions == y ).mean() 
         
-    # ---- include update and predict here to update loss and acc?
     def train( self, X, y ):
         """
         Represents calculation of fitness to calculate the loss of the neural network.
