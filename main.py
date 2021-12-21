@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # for reproducibility
-random.seed(0)
+random.seed(100)
 
 
 # ---- data preprocessing
@@ -46,12 +46,28 @@ x_test_scaled = scaler.transform( x_test )
 # initialise neural network
 nn = NeuralNetwork( 4, 30, 3, activation_func="tanh" ) # include x and y here
 
+# neural network self optimisation
+print( "Starting Neural Network Optimisation" )
+nn.self_optimise(x_train_scaled, y_train, 0.05, 500) 
+nn_y_pred = nn.predict( x_test_scaled )
+nn_test_acc = ( nn_y_pred == y_test ).mean()
+
+print( "Neural network done" )
+print( "\n" )
+
 # neural network is also trained INSIDE this PSO instance
+print( "Starting Particle Swarm Optimisation" )
 pso = PSO( 100, 30 ) # only swarms here
 pso.optimise_swarm( nn, x_train_scaled, y_train, 500 ) # nn and iters here
 
 # apply trained nn to test data
-y_pred = nn.predict( x_test_scaled )
-test_acc = ( y_pred == y_test ).mean()
+pso_y_pred = nn.predict( x_test_scaled )
+pso_test_acc = ( pso_y_pred == y_test ).mean()
 
-print( test_acc )
+print( "PSO done" )
+print("\n")
+
+print("Test Parameters\n" 
+      f"Neural Network Accuracy = {nn_test_acc:.4f}\n"
+      f"Particle Swarm Opsimisation Accuracy = {pso_test_acc:.4f}")
+

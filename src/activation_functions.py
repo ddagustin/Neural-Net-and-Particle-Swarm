@@ -44,6 +44,24 @@ class activationFunction():
     
     def ReLu( X ):
         return X * ( X > 0 )
+    
+    def der_Linear( X ):
+        return 1
+    
+    def der_Sigmoid( X ):
+        return expit( X ) * ( 1 - expit( X ) )
+    
+    def der_Tanh( X ):
+        return 1 - ( np.tanh( X ) ) ** 2
+    
+    def der_SoftMax( X ):
+        s = softmax( X, axis =  1).reshape(-1, 1)
+        return np.diagflat( softmax( X, axis =  1) ) - np.dot( s, s.T )
+    
+    def der_ReLu( X ):
+        return ( X > 0 ) * 1
+    
+    
 
 ACTIVATIONS = {
     "linear" : activationFunction.Linear,
@@ -52,4 +70,20 @@ ACTIVATIONS = {
     "softmax" : activationFunction.Softmax,
     "relu" : activationFunction.ReLu,
     }
+
+DERIVATIVES = {
+    "linear" : activationFunction.der_Linear,
+    "sigmoid" : activationFunction.der_Sigmoid,
+    "tanh" : activationFunction.der_Tanh,
+    "softmax" : activationFunction.der_SoftMax,
+    "relu" : activationFunction.der_ReLu,
+    }
+
+
+if __name__ == "__main__":
+    X = np.full((150, 3), 1/3)
+    
    
+    error = activationFunction.der_SoftMax(X)
+    print( error.shape )
+    

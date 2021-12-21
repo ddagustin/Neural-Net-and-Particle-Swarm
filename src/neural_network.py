@@ -10,8 +10,16 @@ Assessment 1 - Neural Network Weight Optimisation using
 """
 
 # ---- import dependencies and assessment related module
+import random
 import numpy as np
-from src import ACTIVATIONS
+from src import ACTIVATIONS, DERIVATIVES
+
+from sklearn.datasets import load_iris
+
+dataset = load_iris()
+x_ = dataset.data
+y_ = dataset.target
+
 
 # ---- neural network
 class NeuralNetwork():
@@ -56,10 +64,11 @@ class NeuralNetwork():
         # activation functions
         self.activation_func = ACTIVATIONS[ activation_func ]
         self.output_act_func = ACTIVATIONS[ "softmax" ]
+        self.back_activation_func = DERIVATIVES[ activation_func ]
         
         # initialise flat weights and biases array
-        self.weight_dims = np.cumsum([ n_inputs * n_hidden_nodes, n_hidden_nodes, n_outputs * n_hidden_nodes, n_outputs ])    
-        self.update_weights( np.zeros( self.weight_dims[-1] ) )
+        self.weight_dims = np.cumsum([ n_inputs * n_hidden_nodes, n_hidden_nodes, n_outputs * n_hidden_nodes, n_outputs ])
+        self.init_weights()
         
         # accuracy and loss values
         self.loss = None
@@ -182,10 +191,90 @@ class NeuralNetwork():
 
         """
         # perform calculations
-        output_1 = X.dot( self.layer_1 ) + self.bias_1
-        activation_1 = self.activation_func( output_1 )
-        output_2 = activation_1.dot( self.layer_2 ) + self.bias_2
+        self.output_1 = X.dot( self.layer_1 ) + self.bias_1
+        self.activation_1 = self.activation_func( self.output_1 )
+        self.output_2 = self.activation_1.dot( self.layer_2 ) + self.bias_2
         
         # calculate probabilities for output layer; softmax function
-        probabilities = self.output_act_func( output_2 )
+        probabilities = self.output_act_func( self.output_2 )
         return probabilities
+    
+    def init_weights( self, method = True ):
+        if method:
+            self.update_weights( np.array( [ random.uniform( -1, 1 ) for x in range( self.weight_dims[-1] )] ) ) # for randomized weights
+        else:
+            self.update_weights( np.zeros( self.weight_dims[-1] ) ) # for 0 weights
+    
+    
+    # ---- Functions below are for testing the neural network on its own which include:
+    def backward_prop( self, X, y, learning_rate ):
+        """
+        Calculates the gradient descent of each layer
+        Overrides the update_weights function to update the neural network weights and biases
+        
+        Parameters
+        ----------
+        X : ndarray
+            array of input data
+        
+        y : ndarray
+            array of class labels of X
+        learning_rate : float
+            factor for gradient descent
+
+        Returns
+        -------
+        None.
+
+        """
+        # calculating layer errors
+        self.error = ( self.probabilities - np.eye( np.unique(y).shape[0] )[y] ) / self.probabilities.shape[0]
+        self.hidden_error = np.dot( self.error, self.layer_2.T ) * self.back_activation_func( self.output_1 )
+        
+        self.layer_2 -= learning_rate * np.dot( self.activation_1.T, self.error )
+        self.bias_2 -= learning_rate * np.sum( self.error, axis = 0 ) # error per column
+        
+        self.layer_1 -= learning_rate * np.dot( X.T, self.hidden_error )
+        self.bias_1 -= learning_rate * np.sum( self.hidden_error, axis = 0 ) # error per column
+        
+    
+    def self_optimise( self, X, y, learning_rate, num_iter ):
+        """
+        Function to iterate and train the neural network
+
+        Parameters
+        ----------
+        X : ndarray
+            array of input data
+        
+        y : ndarray
+            array of class labels of X
+        learning_rate : float
+            factor for gradient descent
+        num_iter : int
+            number of iterations
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        temp_loss = np.Inf
+        temp_acc = -1
+        for i in range(num_iter):
+            self.train(X, y)
+            self.backward_prop( X, y, learning_rate )
+            self.update_accuracy(X, y)
+            
+            if temp_loss > self.loss and temp_acc < self.accuracy:
+                temp_loss, temp_acc = self.loss, self.accuracy
+                print( f"neural network metrics; iter {i+1}: acc = {self.accuracy:.4f}, loss = {self.loss:.4f}" )
+            
+            
+    
+# ---- for testing purposes, execute when running this file
+if __name__ == "__main__":
+    nn = NeuralNetwork( 4, 30, 3, activation_func="tanh" )
+    
+    nn.self_optimise(x_, y_, 0.006, 500)

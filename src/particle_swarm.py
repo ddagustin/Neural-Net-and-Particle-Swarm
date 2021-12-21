@@ -222,6 +222,7 @@ class PSO():
         """
         
         self.initialise_swarm( model.weight_dims[-1] )
+        model.init_weights(method = False)
         
         # calculate loss, identify informants for each particle and set initial global variables
         for particle in self.swarm:
@@ -231,7 +232,6 @@ class PSO():
                 self.global_best_fitness = particle.fitness
                 self.global_best_position = particle.positions
                 
-        
         # start loop
         for i in range( n_iter ):
             for particle in self.swarm:
@@ -270,7 +270,7 @@ class PSO():
                     self.metrics["accuracy"] = round( model.accuracy, 4 )
                     self.metrics["loss"] = round( model.loss, 4 )
                     
-                    print( "global best; iter", i+1, self.metrics )
+                    print( "PSO global best; iter", i+1, self.metrics )
             
         
         # update weights to global best after iteration
