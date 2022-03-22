@@ -46,7 +46,7 @@ class activationFunction():
         return X * ( X > 0 )
     
     def der_Linear( X ):
-        return 1
+        return 1 # WRONG! should be an array
     
     def der_Sigmoid( X ):
         return expit( X ) * ( 1 - expit( X ) )
